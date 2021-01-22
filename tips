@@ -1,0 +1,304 @@
+#!/usr/bin/env python
+import argparse
+import textwrap
+
+# ANSI Color codes
+OFF     = "\033[0m"
+RED     = "\033[31m"
+GREEN   = "\033[32m"
+YELLOW  = "\033[33m"
+BLUE    = "\033[34m"
+MAGENTA = "\033[35m"
+CYAN    = "\033[36m"
+
+class Topic(object):
+    def __init__(self, name, description, text):
+        self.name = name
+        self.description = description
+        self.text = text
+
+topic_list = [
+    Topic('vim', 'vim snippets', textwrap.dedent('''\
+        # line numbers
+        :set number
+        :set nonumber
+        # autocomplete
+        # for JUST this file
+        ^x^n
+        # for filenames (works with our path trick)
+        ^x^f
+        # for tags only
+        ^x^]
+        # for anything specified by the complete option
+        ^n
+        # replace to end of line
+        c$
+        ''')),
+    Topic('git', 'git', textwrap.dedent('''\
+        # list modified and staged files
+        git status -uno
+        # List modified files
+        git ls-files -m
+
+        # List changed files in time period
+        git log --name-only --since="13-Sep-2014" --until="17-Sep-2014" iic/imon
+
+        git whatchanged --since="1/1/2010"
+
+        # checkout by date
+        git checkout `git rev-list -n 1 --before="2016-08-27 13:37" master`
+
+        # Revert locally modified files
+        git checkout -- files
+
+        # checkout master at certain date/time
+        git checkout 'master@{2017-11-02 18:30:00}'
+
+        # checkout by hash
+        git checkout <sha1>
+
+        # show the branch we are currently on
+        git branch
+
+        # show all remote branches
+        git branch -r
+
+        # change to another branch
+        git branch NPU-PE-UP
+        git checkout NPU-PE-UP
+
+        # delete local branch
+        git branch -d bugfix/IRIS-97904
+
+        # delete local and remote branch
+        git branch -rd bugfix/IRIS-97904
+        git push
+
+        # create a branch
+        git checkout -b branch-name
+
+        # git diff without external tool
+        git diff --no-ext-diff iic/imon/probeStabilityAutomation/runAll
+
+        # git log one line with hash
+        git log --pretty=format:"%h - %an, %ar : %s"
+
+        # show url used to clone
+        git remote show origin
+
+        # Use git log to see file version history and version hash values
+        git log iic/imon/icSystemManager/src/OamConfig.cpp
+
+        # Use git show to "cat" an old version of a file
+        git show 12bfb49e6bcd04085fe60d8f323da18699fcb35e:iic/imon/icSystemManager/src/OamConfig.cpp > iic/imon/icSystemManager/src/OamConfig.cpp
+
+        # show changes by hash
+        git show <revhash>
+
+        # change commit message
+        git commit -amend -m 'The new edited message'
+
+        # change commit message from file
+        git commit -amend -F /tmp/new_msg
+
+        # list files committed locally but not pushed (should git pull first)
+        git diff --name-only origin/master
+
+        # diff file between local repo and master
+        git diff origin/master directory_foo/file_bar.m
+
+        # git clean - remove non non version controlled files and directories
+        git clean -f -d
+        git clean -f -d --dry-run
+        # ignore ignore files
+        git clean -x -f -d --dry-run
+        git clean -x -f -d
+
+        # cherry pick a specific commit
+        git cherry-pick --no-commit f8ce16a00da
+
+        # revert a commit without committing anything
+        git revert --no-commit f8ce16a00da
+
+        # update branch from master
+        git checkout master
+        git pull
+        git checkout mybranch
+        git merge master --no-commit
+
+        # make patch file
+        git diff --no-ext-diff > file.patch
+
+        # apply patch file
+        git apply file.patch
+
+        Gottlieb, Rajesh 2:48 PM
+        git question...
+        how can I create a branch in my repo based off of your branch?
+        Riger, Elena 2:50 PM
+        what I do is the following (but maybe there is shorter way)
+        1a. git remote add elena ssh://git@tekcomms-stash:7999/~eriger/probemaster.git
+        1b. git fetch elena
+        (this will add all my branches to your local repo)
+        2. git checkout -b your_branch elena/my_branch
+        this will create a local copy of my branch in your workspace
+        3. git push origin your_branch
+        this will push it to your remote repo
+
+
+        # git stash
+        git stash save "IRIS-89734: Memory leaks after G500 stability test"
+        git stash list
+        git stash show
+        git stash apply stash@{0}
+        git stash drop stash@{0}
+        ''')),
+    Topic('tp', 'TrafficProcess debugging commands', textwrap.dedent('''\
+        ''' + RED + '################' + OFF + '''
+        # tail trace files
+        (cd /log/trace/1-1f-2 && tail -F ControlDistributor-1-1f-2-trace.txt)
+        (cd /log/trace/1-1f-2 && tail -F TrafficProcessor-1-1f-2-trace.txt)
+        # SessionTrace     on/off
+        aui TrafficProcessor-1-1f-2 -c 'tracelevel iris::ict::SessionTrace TR_LVL_HIGH'
+        aui TrafficProcessor-1-1f-2 -c 'tracelevel iris::ict::SessionTrace TR_LVL_LOW'
+        # DecodeTrace      on/off
+        aui TrafficProcessor-1-1f-2 -c 'tracelevel iris::decode::DecodeTrace TR_LVL_HIGH'
+        aui TrafficProcessor-1-1f-2 -c 'tracelevel iris::decode::DecodeTrace TR_LVL_LOW'
+        # TransactionTrace on/off
+        aui TrafficProcessor-1-1f-2 -c 'tracelevel iris::ict::TransactionTrace TR_LVL_HIGH'
+        aui TrafficProcessor-1-1f-2 -c 'tracelevel iris::ict::TransactionTrace TR_LVL_LOW'
+        # XDR Trace          on/off
+        aui TrafficProcessor-1-1f-2 -c 'tracelevel iris::ict::XDRTrace TR_LVL_HIGH'
+        aui TrafficProcessor-1-1f-2 -c 'tracelevel iris::ict::XDRTrace TR_LVL_LOW'
+
+        # PreProc stats 
+        aui ControlDistributor-1-1f-2 -c 'send IcSystemManager stats 11'
+        # M3UA/M2PA/M2UA stats 
+        aui ControlDistributor-1-1f-2 -c 'send IcSystemManager stats 18'
+        # Sigtran stats 
+        aui ControlDistributor-1-1f-2 -c 'send IcSystemManager stats 19'
+        # list more...
+        aui ControlDistributor-1-1f-2 -c 'send IcSystemManager stats'
+
+        aui TrafficProcessor-1-1f-2 -c 'send 15 showr 61100'
+        aui TrafficProcessor-1-1f-2 -c 'send 15 shows 61100'
+
+        # GSM_MAP = 61026
+        # BSSMAP  = 61109   // A-if
+        aui TrafficProcessor-1-1f-2 -c 'send 15 showr 61026'
+        aui TrafficProcessor-1-1f-2 -c 'send 15 shows 61026'
+
+        #include <ict/TSTrace.h>
+        ''' + RED + '################' + OFF + '''
+        ''')),
+    Topic('printf', 'printf', textwrap.dedent('''\
+        printf formatting recipies...
+        sprintf()
+        --- Topics -------- Description ------
+            git             git
+            printf          printf
+            tp              TrafficProcess debugging commands
+        ''')),
+    Topic('linux', 'linux things I sometimes do', textwrap.dedent('''\
+        # mount windows network directory on linux: \\\\alnentrace2\\trace\\users\\yuwan\\2g3g\\
+        sudo mkdir /etc/alnentrace2
+        sudo chmod a+wrx /etc/alnentrace2
+        # mount -t nfs -o options host:/remote/export /local/directory
+        sudo mount alnentrace2.netscout.com:/ /etc/alnentrace2
+        # Clean up typescript files
+        col -bp < typescript > new_file
+        # process files possibly with spaces in the filenames
+        find . -name '*.pcap' | while read -r file; do tshark -V -r "$file" 2>/dev/null | egrep --quiet 'Connection Request' && echo $file; done
+        ''')),
+    Topic('fedora', 'fedora things I might forget', textwrap.dedent('''\
+        # Common packages to install or update
+        sudo yum install vim
+        sudo yum update ncurses-devel
+        ''')),
+    Topic('color', 'ansi color codes', textwrap.dedent('''\
+        ''' + YELLOW + '''// C
+        ''' + MAGENTA + '''#ifndef ANSI_COLOR
+        ''' + MAGENTA + '''#define ANSI_COLOR
+        ''' + CYAN + '''#define OFF       "\\033[0m"
+        ''' + CYAN + '''#define RED       "\\033[31m"
+        ''' + CYAN + '''#define GREEN     "\\033[32m"
+        ''' + CYAN + '''#define YELLOW    "\\033[33m"
+        ''' + CYAN + '''#define BLUE      "\\033[34m"
+        ''' + CYAN + '''#define MAGENTA   "\\033[35m"
+        ''' + CYAN + '''#define CYAN      "\\033[36m"
+        ''' + MAGENTA + '''#endif
+        ''' + YELLOW + '''# Python
+        ''' + CYAN + '''OFF     = "\\033[0m"
+        ''' + CYAN + '''RED     = "\\033[31m"
+        ''' + CYAN + '''GREEN   = "\\033[32m"
+        ''' + CYAN + '''YELLOW  = "\\033[33m"
+        ''' + CYAN + '''BLUE    = "\\033[34m"
+        ''' + CYAN + '''MAGENTA = "\\033[35m"
+        ''' + CYAN + '''CYAN    = "\\033[36m"
+        ''')),
+    Topic('pcap', 'pcap', textwrap.dedent('''\
+        # play pcap -> port
+        tcpreplay -i eth1 traffic.pcap
+
+        # capture pcap from port
+        tcpdump -i eth1 -w capture.pcap
+
+        # convert from pcapng to pcap
+        editcap -F libpcap in.pcap out.pcap
+        ''')),
+
+]
+
+def main(args):
+    topic_map = {}
+    for topic in topic_list:
+        topic_map[topic.name] = topic
+
+    for topic_name in args.topic:
+        if topic_name in topic_map:
+            text = topic_map[topic_name].text
+            for line in text.splitlines():
+                if line.startswith('#'):
+                    print(YELLOW + line + OFF)
+                else:
+                    print(line)
+        else:
+            print(RED + 'unknown topic, moron...' + OFF)
+
+if __name__ == "__main__":
+
+    topic_description = ''
+    separator = ''
+    for topic in topic_list:
+        topic_description = topic_description + separator + '    {0:20}{1}'.format(topic.name, topic.description)
+        separator = '\n'
+
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description=textwrap.dedent('''\
+                                        topics:
+                                        ''') + topic_description)
+
+    parser.add_argument('--no-color', action='store_true', help='turn off color in output')
+    parser.add_argument('topic', nargs=1, help='which topic interests you?')
+    args = parser.parse_args()
+
+    if args.no_color:
+        OFF     = ""
+        RED     = ""
+        GREEN   = ""
+        YELLOW  = ""
+        BLUE    = ""
+        MAGENTA = ""
+        CYAN    = ""
+    else:
+        # ANSI Color codes
+        OFF     = "\033[0m"
+        RED     = "\033[31m"
+        GREEN   = "\033[32m"
+        YELLOW  = "\033[33m"
+        BLUE    = "\033[34m"
+        MAGENTA = "\033[35m"
+        CYAN    = "\033[36m"
+
+#   print(args)
+    main(args)
