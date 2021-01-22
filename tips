@@ -245,6 +245,9 @@ topic_list = [
 
         # convert from pcapng to pcap
         editcap -F libpcap in.pcap out.pcap
+
+        # process many pcaps files (possibly with spaces in the filenames)
+        find . -name '*.pcap' | while read -r file; do tshark -V -r "$file" 2>/dev/null | egrep --quiet 'Connection Request' && echo $file; done
         ''')),
 
 ]
