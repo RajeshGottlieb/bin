@@ -209,6 +209,7 @@ topic_list = [
         col -bp < typescript > new_file
         # process files possibly with spaces in the filenames
         find . -name '*.pcap' | while read -r file; do tshark -V -r "$file" 2>/dev/null | egrep --quiet 'Connection Request' && echo $file; done
+        cat /tmp/filelist | while read -r file; do ls -l "${file}"; done
         ''')),
     Topic('fedora', 'fedora things I might forget', textwrap.dedent('''\
         # Common packages to install or update
