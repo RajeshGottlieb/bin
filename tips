@@ -33,6 +33,16 @@ topic_list = [
         ^n
         # replace to end of line
         c$
+        # yank inner word - yank the word under the cursor automatically copies from the beginning of the word
+        yiw
+        # change inner word - change the word under the cursor don't have to be at the beginning
+        ciw <new-word> <esc>
+        # change word under cursor with value from yank buffer
+        ciw <Ctrl-R 0> <esc>
+        # change words under cursor with value from yank buffer and move to the next one
+        cgn <Ctrl-R 0> <esc>
+        n
+        .
         ''')),
     Topic('git', 'git', textwrap.dedent('''\
         # list modified and staged files
@@ -201,10 +211,10 @@ topic_list = [
         ''')),
     Topic('linux', 'linux things I sometimes do', textwrap.dedent('''\
         # mount windows network directory on linux: \\\\alnentrace2\\trace\\users\\yuwan\\2g3g\\
-        sudo mkdir /etc/alnentrace2
-        sudo chmod a+wrx /etc/alnentrace2
+        sudo mkdir /mnt/alnentrace2
+        sudo chmod a+wrx /mnt/alnentrace2
         # mount -t nfs -o options host:/remote/export /local/directory
-        sudo mount alnentrace2.netscout.com:/ /etc/alnentrace2
+        sudo mount alnentrace2.netscout.com:/ /mnt/alnentrace2
         # Clean up typescript files
         col -bp < typescript > new_file
         # process files possibly with spaces in the filenames
@@ -249,6 +259,9 @@ topic_list = [
 
         # process many pcaps files (possibly with spaces in the filenames)
         find . -name '*.pcap' | while read -r file; do tshark -V -r "$file" 2>/dev/null | egrep --quiet 'Connection Request' && echo $file; done
+
+        # copy packets 1-30 from in.pcap to out.pcap in pcap format (not pcapng)
+        editcap -F pcap in.pcap out.pcap 1-30
         ''')),
 
 ]
